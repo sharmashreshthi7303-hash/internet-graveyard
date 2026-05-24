@@ -9,7 +9,7 @@ function App() {
     learning: "",
   });
 
-  const API_URL = "http://localhost:5000/api/graves";
+  const API_URL = "https://internet-graveyard-backend.onrender.com/api/graves";
 
   // Fetch all graves from backend
   const fetchGraves = async () => {
