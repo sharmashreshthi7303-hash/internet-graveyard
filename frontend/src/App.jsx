@@ -9,16 +9,20 @@ function App() {
     learning: "",
   });
 
-  const API_URL = "https://internet-graveyard-backend.onrender.com/api/graves";
+  // ⚠️ REPLACE THIS LINK WITH YOUR LIVE ONDRENDER BACKEND LINK IF DEPLOYED
+  const API_URL = "http://localhost:5000/api/graves";
 
   // Fetch all graves from backend
   const fetchGraves = async () => {
     try {
       const res = await fetch(API_URL);
+      if (!res.ok) throw new Error("Network response was not ok");
       const data = await res.json();
-      setGraves(data);
+      // Ensure data is always an array before setting state
+      setGraves(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error loading graveyard:", err);
+      setGraves([]); // Fallback to empty array on error to prevent crashes
     }
   };
 
@@ -129,53 +133,75 @@ function App() {
         </button>
       </form>
 
-      {/* GRAVEYARD DISPLAY GRID */}
+      {/* GRAVEYARD DISPLAY GRID (with Crash Protection) */}
       <div style={styles.grid}>
-        {graves.map((grave) => (
-          <div key={grave._id} style={styles.tombstone}>
-            <div style={styles.tombstoneTop}></div>
-            <h2 style={styles.graveTitle}>{grave.title}</h2>
-            <p style={styles.graveTagline}>
-              <em>"{grave.tagline}"</em>
-            </p>
-            <hr style={styles.hr} />
-            <p style={styles.bodyText}>
-              💀 <strong>Fatal Flaw:</strong> {grave.causeOfDeath}
-            </p>
-            <p style={styles.bodyText}>
-              💡 <strong>Lesson:</strong> {grave.learning}
-            </p>
+        {graves && graves.length > 0 ? (
+          graves.map((grave) => (
+            <div key={grave._id} style={styles.tombstone}>
+              <div>
+                <div style={styles.tombstoneTop}></div>
+                <h2 style={styles.graveTitle}>{grave.title}</h2>
+                <p style={styles.graveTagline}>
+                  <em>"{grave.tagline || "A brilliant mistake."}"</em>
+                </p>
+                <hr style={styles.hr} />
+                <p style={styles.bodyText}>
+                  💀 <strong>Fatal Flaw:</strong> {grave.causeOfDeath}
+                </p>
+                <p style={styles.bodyText}>
+                  💡 <strong>Lesson:</strong> {grave.learning}
+                </p>
+              </div>
 
-            {grave.exhumedBy && (
-              <p style={styles.exhumedTag}>
-                ⚡ Resurrected by: <strong>{grave.exhumedBy}</strong>
-              </p>
-            )}
+              <div>
+                {grave.exhumedBy && (
+                  <p style={styles.exhumedTag}>
+                    ⚡ Resurrected by: <strong>{grave.exhumedBy}</strong>
+                  </p>
+                )}
 
-            <div style={styles.btnGroup}>
-              <button
-                onClick={() => payRespects(grave._id)}
-                style={styles.respectBtn}
-              >
-                🪦 Drop Respect ({grave.tombstones})
-              </button>
-              {!grave.exhumedBy && (
-                <button
-                  onClick={() => exhumeProject(grave._id)}
-                  style={styles.exhumeBtn}
-                >
-                  ⚡ Exhume
-                </button>
-              )}
+                <div style={styles.btnGroup}>
+                  <button
+                    onClick={() => payRespects(grave._id)}
+                    style={styles.respectBtn}
+                  >
+                    🪦 Respect ({grave.tombstones || 0})
+                  </button>
+                  {!grave.exhumedBy && (
+                    <button
+                      onClick={() => exhumeProject(grave._id)}
+                      style={styles.exhumeBtn}
+                    >
+                      ⚡ Exhume
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
+          ))
+        ) : (
+          <div style={{ textAlign: "center", width: "100%", padding: "40px" }}>
+            <p
+              style={{
+                color: "#888",
+                fontSize: "1.2rem",
+                marginBottom: "10px",
+              }}
+            >
+              The cemetery grounds are quiet... 🌌
+            </p>
+            <p style={{ color: "#555", fontSize: "0.9rem" }}>
+              (If you already deployed, the free hosting server might take 30-60
+              seconds to wake up on the first load!)
+            </p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
 }
 
-// 💄 INSTANT SPOOKY CSS-IN-JS FOR SPEED RUNNING
+// 💄 SPOOKY CSS-IN-JS STYLING
 const styles = {
   container: {
     backgroundColor: "#121212",
@@ -237,6 +263,7 @@ const styles = {
     borderTop: "none",
     borderRadius: "100px 100px 8px 8px",
     width: "280px",
+    minHeight: "340px",
     padding: "40px 24px 24px 24px",
     textAlign: "center",
     position: "relative",
